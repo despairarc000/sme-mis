@@ -179,7 +179,7 @@ function Metric({ label, value, detail, warning }: { label: string; value: numbe
 }
 
 function Movement({ m }: { m: Movement }) {
-  return <div className="movement"><span className="time">{formatDate(m.moved_at)}</span><span className={"movement-type " + m.movement_type.toLowerCase()}>{m.movement_type}</span><div className="movement-name"><strong>{m.item?.product?.product_name || "Unknown item"}</strong><small>Recorded by {m.staff_account?.full_name || "Unknown staff"}</small></div><strong className={m.movement_type === "RESTOCK" ? "positive" : "negative"}>{m.movement_type === "RESTOCK" ? "+" : "-"}{m.quantity}</strong></div>;
+  return <div className="movement"><span className="time">{formatDate(m.moved_at)}</span><span className={"movement-type " + m.movement_type.toLowerCase()}>{m.movement_type}</span><div className="movement-name"><strong>{m.item?.product?.product_name || "Unknown item"}</strong><small>Recorded by {m.staff_account?.full_name || "Unknown staff"}</small></div><strong>{m.quantity}</strong></div>;
 }
 
 function Alert({ item }: { item: Item }) {
