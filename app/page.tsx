@@ -317,7 +317,7 @@ export default function Home() {
             {view === "overview" && <Overview sme={sme} setView={setView} items={items} priceChanges={priceChanges} movements={movements} />}
             {view === "catalog" && <Catalog items={filtered} query={query} setQuery={setQuery} products={products} categories={categories} canManage={canManage} onSaved={() => void loadWorkspace(user.id)} />}
             {view === "pricing" && <Pricing items={items} priceChanges={priceChanges} canManage={canManage} onSaved={() => void loadWorkspace(user.id)} />}
-            {view === "stock" && <Stock items={items} movements={movements} stockEnabled={Boolean(sme?.stock_module_enabled)} onSaved={() => void loadWorkspace(user.id)} />}
+            {view === "stock" && <Stock items={items} movements={movements} stockEnabled={Boolean(sme?.stock_module_enabled)} canManage={canManage} onSaved={() => void loadWorkspace(user.id)} />}
             {view === "reports" && <Reports items={items} movements={movements} priceChanges={priceChanges} />}
             {view === "public" && <PublicPriceLookup />}
           </>}
@@ -692,7 +692,7 @@ function PriceChangeForm({ item, onClose, onSaved }: { item: Item; onClose: () =
   </section>;
 }
 
-function Stock({ items, movements, stockEnabled, onSaved }: { items: Item[]; movements: Movement[]; stockEnabled: boolean; onSaved: () => void }) {
+function Stock({ items, movements, stockEnabled, canManage, onSaved }: { items: Item[]; movements: Movement[]; stockEnabled: boolean; canManage: boolean; onSaved: () => void }) {
   const [open, setOpen] = useState(false);
   const totalStock = items.reduce((sum, item) => sum + (item.current_stock_qty ?? 0), 0);
   const lowStock = items.filter((item) => item.current_stock_qty != null && item.reorder_level != null && item.current_stock_qty <= item.reorder_level).length;
@@ -701,14 +701,14 @@ function Stock({ items, movements, stockEnabled, onSaved }: { items: Item[]; mov
     <div className="hero-row"><div><p className="eyebrow">STOCK CONTROL</p><h1>Stock</h1><p className="muted">Sales, restocks, losses, spoilage and corrections are written as movements with the resulting stock balance.</p></div><button className="primary" onClick={() => setOpen(true)} disabled={!stockEnabled}><Icon name="plus" />Record movement</button></div>
     {!stockEnabled && <div className="warning-banner">Stock tracking is disabled for this SME. An Owner can enable the Stock module from business settings.</div>}
     <div className="metric-grid three"><Metric label="On hand" value={totalStock} detail="Current item quantities" /><Metric label="Low stock" value={lowStock} detail="At or below reorder level" warning={lowStock > 0} /><Metric label="Recorded movements" value={movements.length} detail="Permanent movement history" /></div>
-    {open && stockEnabled && <StockMovementForm items={items} onClose={() => setOpen(false)} onSaved={() => { setOpen(false); onSaved(); }} />}
+    {open && stockEnabled && <StockMovementForm items={items} canManage={canManage} onClose={() => setOpen(false)} onSaved={() => { setOpen(false); onSaved(); }} />}
     <section className="panel"><Head title="Movement history" sub="Attributed to the staff account that recorded it" />{movements.length ? <div className="movement-list">{movements.map((m) => <Movement key={m.movement_id} m={m} />)}</div> : <Empty>No stock movements have been recorded.</Empty>}</section>
   </>;
 }
 
-function StockMovementForm({ items, onClose, onSaved }: { items: Item[]; onClose: () => void; onSaved: () => void }) {
+function StockMovementForm({ items, canManage, onClose, onSaved }: { items: Item[]; canManage: boolean; onClose: () => void; onSaved: () => void }) {
   const [itemId, setItemId] = useState("");
-  const [type, setType] = useState("RESTOCK");
+  const [type, setType] = useState(canManage ? "RESTOCK" : "SALE");
   const [quantity, setQuantity] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -733,8 +733,8 @@ function StockMovementForm({ items, onClose, onSaved }: { items: Item[]; onClose
     <form className="form-stack" onSubmit={submit}>
       <div className="form-grid">
         <label><span>Item</span><select required value={itemId} onChange={(e) => setItemId(e.target.value)}><option value="">Select item…</option>{items.map((item) => <option key={item.item_id} value={item.item_id}>{item.product?.product_name || "Unnamed item"} · {item.current_stock_qty ?? 0} on hand</option>)}</select></label>
-        <label><span>Movement type</span><select value={type} onChange={(e) => setType(e.target.value)}><option>RESTOCK</option><option>SALE</option><option>LOSS</option><option>SPOILAGE</option><option>ADJUSTMENT</option></select></label>
-        <label><span>{type === "ADJUSTMENT" ? "Adjustment (+ / -)" : "Quantity"}</span><input required type="number" step="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} /></label>
+        <label><span>Movement type</span><select value={type} onChange={(e) => setType(e.target.value)}><option>SALE</option>{canManage && <><option>RESTOCK</option><option>LOSS</option><option>SPOILAGE</option><option>ADJUSTMENT</option></>}</select></label>
+        <label><span>{type === "ADJUSTMENT" ? "Adjustment (+ / -)" : "Quantity"}</span><input required min={type === "ADJUSTMENT" ? undefined : 1} type="number" step="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} /></label>
       </div>
       {error && <div className="error-banner">{error}</div>}
       <button className="primary" disabled={busy}>{busy ? "Recording movement…" : "Record movement"}</button>
