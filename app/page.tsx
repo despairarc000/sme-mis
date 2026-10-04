@@ -86,7 +86,7 @@ export default function Home() {
 
       const [smeResult, itemResult, priceResult, movementResult] = await Promise.all([
         supabase.from("sme").select("sme_name").eq("status", "Active").limit(1).maybeSingle(),
-        supabase.from("item").select("item_id,current_price,current_cost,current_stock_qty,reorder_level,price_updated_at,status,product:product_id(product_name,brand,category:category_id(category_name))").eq("status", "Active").order("item_id"),
+        supabase.from("item").select("item_id,current_price,current_cost,current_stock_qty,reorder_level,price_updated_at,status,product:product_id(product_name,brand,barcode,category:category_id(category_name))").eq("status", "Active").order("item_id"),
         supabase.from("price_change_log").select("log_id,old_price,new_price,changed_at,reason,item:item_id(product:product_id(product_name)),staff_account:staff_account_id(full_name)").order("changed_at", { ascending: false }).limit(100),
         supabase.from("stock_movement").select("movement_id,movement_type,quantity,moved_at,item:item_id(product:product_id(product_name)),staff_account:staff_account_id(full_name)").order("moved_at", { ascending: false }).limit(100),
       ]);
