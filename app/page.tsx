@@ -536,7 +536,7 @@ function Catalog({ items, query, setQuery, products, categories, canManage, onSa
   }
 
   return <>
-    <div className="hero-row"><div><p className="eyebrow">ITEM MASTER</p><h1>Catalog & Items</h1><p className="muted">PRODUCT is shared; ITEM is this SME's listing with its current price, cost and stock.</p></div>{canManage && <button className="primary" onClick={() => setOpen(true)}><Icon name="plus" />Add item</button>}</div>
+    <div className="hero-row"><div><p className="eyebrow">ITEM MASTER</p><h1>Catalog & Items</h1><p className="muted">PRODUCT is shared; ITEM is this SME&apos;s listing with its current price, cost and stock.</p></div>{canManage && <button className="primary" onClick={() => setOpen(true)}><Icon name="plus" />Add item</button>}</div>
     <div className="toolbar"><div className="search"><Icon name="search" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search product, brand, category, or barcode" /></div></div>
     {open && <AddItemForm products={products} categories={categories} onClose={() => setOpen(false)} onSaved={() => { setOpen(false); onSaved(); }} />}
     {archiveError && <div className="error-banner">{archiveError}</div>}
