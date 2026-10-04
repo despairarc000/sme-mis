@@ -16,6 +16,7 @@ type Item = {
   product: {
     product_name: string;
     brand: string | null;
+    barcode: string | null;
     category: { category_name: string } | null;
   } | null;
 };
