@@ -521,16 +521,30 @@ function Overview({ sme, setView, items, priceChanges, movements }: { sme: Sme |
 
 function Catalog({ items, query, setQuery, products, categories, canManage, onSaved }: { items: Item[]; query: string; setQuery: (v: string) => void; products: Product[]; categories: Category[]; canManage: boolean; onSaved: () => void }) {
   const [open, setOpen] = useState(false);
+  const [archiving, setArchiving] = useState<number | null>(null);
+  const [archiveError, setArchiveError] = useState("");
+
+  async function archiveItem(itemId: number) {
+    if (!window.confirm("Archive this item? Its price and stock history will remain available.")) return;
+    setArchiving(itemId);
+    setArchiveError("");
+    const supabase = createClient();
+    const { error } = await supabase.rpc("archive_item", { p_item_id: itemId });
+    if (error) setArchiveError(error.message);
+    else onSaved();
+    setArchiving(null);
+  }
 
   return <>
     <div className="hero-row"><div><p className="eyebrow">ITEM MASTER</p><h1>Catalog & Items</h1><p className="muted">PRODUCT is shared; ITEM is this SME's listing with its current price, cost and stock.</p></div>{canManage && <button className="primary" onClick={() => setOpen(true)}><Icon name="plus" />Add item</button>}</div>
     <div className="toolbar"><div className="search"><Icon name="search" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search product, brand, category, or barcode" /></div></div>
     {open && <AddItemForm products={products} categories={categories} onClose={() => setOpen(false)} onSaved={() => { setOpen(false); onSaved(); }} />}
+    {archiveError && <div className="error-banner">{archiveError}</div>}
     <section className="panel table-panel">
-      <Head title="Items" sub={`${items.length} active item listing${items.length === 1 ? "" : "s"}`} />
-      {items.length ? <div className="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Cost</th><th>Stock</th><th>Location</th><th>State</th></tr></thead><tbody>{items.map((item) => {
+      <Head title="Items" sub={`${items.length} active item${items.length === 1 ? "" : "s"}`} />
+      {items.length ? <div className="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Cost</th><th>Stock</th><th>Location</th><th>State</th>{canManage && <th>Action</th>}</tr></thead><tbody>{items.map((item) => {
         const state = item.current_stock_qty === 0 ? "Out of stock" : item.reorder_level != null && (item.current_stock_qty ?? 0) <= item.reorder_level ? "Low stock" : "In stock";
-        return <tr key={item.item_id}><td><strong>{item.product?.product_name || "Unnamed product"}</strong><small>{item.product?.brand || "No brand"}{item.product?.barcode ? ` · ${item.product.barcode}` : ""}</small></td><td>{item.product?.category?.category_name || "—"}</td><td><strong>{money(item.current_price)}</strong><small>Updated {formatDate(item.price_updated_at)}</small></td><td>{money(item.current_cost)}</td><td>{item.current_stock_qty ?? "—"}{item.reorder_level != null && <small>reorder {item.reorder_level}</small>}</td><td>{item.shelf_location || "—"}</td><td><span className={"status " + state.toLowerCase().replaceAll(" ", "-")}>{state}</span></td></tr>;
+        return <tr key={item.item_id}><td><strong>{item.product?.product_name || "Unnamed product"}</strong><small>{item.product?.brand || "No brand"}{item.product?.barcode ? ` · ${item.product.barcode}` : ""}</small></td><td>{item.product?.category?.category_name || "—"}</td><td><strong>{money(item.current_price)}</strong><small>Updated {formatDate(item.price_updated_at)}</small></td><td>{money(item.current_cost)}</td><td>{item.current_stock_qty ?? "—"}{item.reorder_level != null && <small>reorder {item.reorder_level}</small>}</td><td>{item.shelf_location || "—"}</td><td><span className={"status " + state.toLowerCase().replaceAll(" ", "-")}>{state}</span></td>{canManage && <td><button className="danger-text" onClick={() => void archiveItem(item.item_id)} disabled={archiving === item.item_id}>{archiving === item.item_id ? "Archiving…" : "Archive"}</button></td>}</tr>;
       })}</tbody></table></div> : <Empty>No active items are stored in Supabase.</Empty>}
     </section>
   </>;
