@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import PublicPriceLookup from "@/components/public-price-lookup";
+import StaffManagement from "@/components/staff-management";
 
 type View = "overview" | "catalog" | "pricing" | "stock" | "reports" | "public" | "staff";
 type Role = "Owner" | "Manager" | "Staff";
@@ -496,6 +497,20 @@ function SetupScreen({ userEmail, onComplete, setMessage, message, setError, err
           {message && <div className="success-banner">{message}</div>}
           <button className="primary full" disabled={busy}>{busy ? "Creating workspace…" : "Create SME workspace"}</button>
         </form>
+      </section>
+    </main>
+  );
+}
+
+function DisabledAccountScreen({ fullName, onSignOut }: { fullName: string; onSignOut: () => void }) {
+  return (
+    <main className="auth-shell">
+      <section className="auth-card">
+        <div className="brand auth-brand"><div className="brand-mark">S</div><div><strong>SME MIS</strong><span>Price & Stock Control</span></div></div>
+        <p className="eyebrow">ACCOUNT INACTIVE</p>
+        <h1>This staff account is inactive.</h1>
+        <p className="muted">{fullName}, your access to this SME workspace has been disabled by the Owner.</p>
+        <button className="primary full" onClick={onSignOut}>Sign out</button>
       </section>
     </main>
   );
