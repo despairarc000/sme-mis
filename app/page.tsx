@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import PublicPriceLookup from "@/components/public-price-lookup";
 
-type View = "overview" | "catalog" | "pricing" | "stock" | "reports" | "public";
+type View = "overview" | "catalog" | "pricing" | "stock" | "reports" | "public" | "staff";
 type Role = "Owner" | "Manager" | "Staff";
 
 type Staff = {
@@ -13,6 +13,11 @@ type Staff = {
   role: Role;
   full_name: string;
   status: string;
+};
+
+type ManagedStaff = Staff & {
+  auth_user_id: string;
+  email: string;
 };
 
 type Sme = {
@@ -94,6 +99,7 @@ function Icon({ name }: { name: string }) {
     plus: "M12 5v14M5 12h14",
     bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4",
     logout: "M10 17l5-5-5-5M15 12H3M20 5v14",
+    users: "M16 21v-2a4 4 0 0 0-8 0v2M12 11a4 4 0 1 0-8 4 4 0 0 0 8 0Z",
   };
   return <svg viewBox="0 0 24 24" className="icon"><path d={paths[name]} /></svg>;
 }
@@ -278,6 +284,10 @@ export default function Home() {
     return <SetupScreen userEmail={user.email ?? ""} setMessage={setMessage} message={message} setError={setError} error={error} onComplete={() => void loadWorkspace(user.id)} />;
   }
 
+  if (staff.status !== "Active") {
+    return <DisabledAccountScreen fullName={staff.full_name} onSignOut={() => void signOut()} />;
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -290,6 +300,7 @@ export default function Home() {
             ["pricing", "Pricing", "tag"],
             ["stock", "Stock", "bars"],
             ["reports", "Reports", "chart"],
+            ...(staff.role === "Owner" ? [["staff", "Staff Management", "users"] as [View, string, string]] : []),
           ] as Array<[View, string, string]>).map(([id, label, icon]) => (
             <button key={id} className={view === id ? "nav-item active" : "nav-item"} onClick={() => setView(id)}>
               <Icon name={icon} /><span>{label}</span>
@@ -307,7 +318,7 @@ export default function Home() {
       <section className="content">
         <header className="topbar">
           <div className="mobile-brand"><div className="brand-mark">S</div><strong>SME MIS</strong></div>
-          <div className="crumb">{sme?.sme_name || "Business"} <span>/</span> {view === "public" ? "Public Price Lookup" : view === "catalog" ? "Catalog & Items" : view[0].toUpperCase() + view.slice(1)}</div>
+          <div className="crumb">{sme?.sme_name || "Business"} <span>/</span> {view === "public" ? "Public Price Lookup" : view === "catalog" ? "Catalog & Items" : view === "staff" ? "Staff Management" : view[0].toUpperCase() + view.slice(1)}</div>
           <div className="top-actions"><span className="role-badge">{staff.role}</span><button className="icon-button" onClick={() => setView("public")}><Icon name="search" /></button></div>
         </header>
 
@@ -319,6 +330,7 @@ export default function Home() {
             {view === "pricing" && <Pricing items={items} priceChanges={priceChanges} canManage={canManage} onSaved={() => void loadWorkspace(user.id)} />}
             {view === "stock" && <Stock items={items} movements={movements} stockEnabled={Boolean(sme?.stock_module_enabled)} canManage={canManage} onSaved={() => void loadWorkspace(user.id)} />}
             {view === "reports" && <Reports items={items} movements={movements} priceChanges={priceChanges} />}
+            {view === "staff" && staff.role === "Owner" && <StaffManagement />}
             {view === "public" && <PublicPriceLookup />}
           </>}
         </div>
