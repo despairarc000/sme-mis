@@ -16,10 +16,6 @@ type Staff = {
   status: string;
 };
 
-type ManagedStaff = Staff & {
-  auth_user_id: string;
-  email: string;
-};
 
 type Sme = {
   sme_id: number;
