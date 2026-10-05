@@ -8,3 +8,5 @@
 @media(max-width:680px){.auth-card,.setup-card{padding:22px}.public-topbar{padding:0 16px}.public-topbar .brand span{display:none}.public-page{padding:18px 14px 50px}.module-status{align-items:flex-start;flex-direction:column}.module-pills{width:100%}.action-grid{grid-template-columns:1fr}.lookup-group{padding:14px}}
 
 .danger-text{border:0;background:none;color:#a13b3b;font-size:11px;font-weight:700;padding:4px 0;cursor:pointer}.danger-text:hover{color:#7f2f2f;text-decoration:underline}.danger-text:disabled{opacity:.55;cursor:not-allowed;text-decoration:none}
+
+.staff-inline-input,.staff-inline-select{width:100%;min-width:120px;border:1px solid var(--line);border-radius:7px;padding:7px 8px;background:#fff;color:var(--ink);font-size:11px;outline:none}.staff-inline-input:focus,.staff-inline-select:focus{border-color:#86ae97;box-shadow:0 0 0 2px #eaf4ee}.staff-inline-input:disabled{background:#f6f8f6;color:#5c6a62}.table-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
